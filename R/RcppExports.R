@@ -8,7 +8,7 @@
 #'
 #' @param dataX Matrix containing the independent variables x. The i-th column represents the i-th observation with components x_{1,i}, ..., x_{d-1,i}.
 #' @param dataY Vector of length n containing {0, 1}-valued observations of the dependent variable y.
-#' @param n_epochs Integer indicating how many times the algorithm processes an equivalent of the full dataset. For basic zig-zag this is identical to the number of iterations of the algorithm. For subsampling and control variates zig-zag this is n times the number of iterations, since every iteration has cost 1/n of an epoch. Here n is the number of observations.
+#' @param n_iter Integer indicating the number of iterations, i.e. the number of proposed switches.
 #' @param subsampling Boolean. Use Zig-Zag with subsampling if TRUE. 
 #' @param controlvariates Boolean. Use Zig-Zag with control variates if TRUE (overriding any value of \code{subsampling}).
 #' @param beta0 Optional argument indicating the starting point for the Zig-Zag sampler
@@ -43,8 +43,8 @@
 #' plot(result$skeletonPoints[1,], result$skeletonPoints[2,],type='l',asp=1)
 #' points(result$samples[1,], result$samples[2,], col='magenta')
 #' @export
-ZigZagLogistic <- function(dataX, dataY, n_epochs, subsampling = TRUE, controlvariates = TRUE, beta0 = numeric(0), n_samples = 0L, n_batches = 0L, computeCovariance = FALSE, upperbound = FALSE) {
-    .Call('_RZigZag_ZigZagLogistic', PACKAGE = 'RZigZag', dataX, dataY, n_epochs, subsampling, controlvariates, beta0, n_samples, n_batches, computeCovariance, upperbound)
+ZigZagLogistic <- function(dataX, dataY, n_iter, subsampling = TRUE, controlvariates = TRUE, beta0 = numeric(0), n_samples = 0L, n_batches = 0L, computeCovariance = FALSE, upperbound = FALSE) {
+    .Call('_RZigZag_ZigZagLogistic', PACKAGE = 'RZigZag', dataX, dataY, n_iter, subsampling, controlvariates, beta0, n_samples, n_batches, computeCovariance, upperbound)
 }
 
 #' ZigZagGaussian

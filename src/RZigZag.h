@@ -40,10 +40,10 @@ class ZigZagSkeleton {
 public:
   MatrixXd sample(const unsigned int n_samples);
   List toR();
-  void LogisticBasic(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_epochs, VectorXd beta = VectorXd::Zero(0)); // logistic regression with zig zag
-  void LogisticUpperbound(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_epochs, VectorXd beta0 = VectorXd::Zero(0)); 
-  void LogisticSubsampling(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_epochs, VectorXd beta = VectorXd::Zero(0));
-  void LogisticControlVariates(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_epochs, VectorXd beta = VectorXd::Zero(0));
+  void LogisticBasic(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta = VectorXd::Zero(0)); // logistic regression with zig zag
+  void LogisticUpperbound(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta0 = VectorXd::Zero(0)); 
+  void LogisticSubsampling(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta = VectorXd::Zero(0));
+  void LogisticControlVariates(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta = VectorXd::Zero(0));
   void GaussianBasic(const MatrixXd& V, const VectorXd& mu, const unsigned int n_steps, const VectorXd& x0); // sample Gaussian with precision matrix V
   void computeBatchMeans(const unsigned int n_batches);
   void computeCovariance();

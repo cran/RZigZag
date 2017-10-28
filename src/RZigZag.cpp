@@ -152,7 +152,7 @@ MatrixXd LogisticData::hessian(const VectorXd& beta) const {
   return hess;
 }
 
-void ZigZagSkeleton::LogisticBasic(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_epochs, VectorXd beta) {
+void ZigZagSkeleton::LogisticBasic(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta) {
 
   const MatrixXd dataXpp(preprocessLogistic(dataX));
   const unsigned int n_components = dataXpp.rows();
@@ -164,7 +164,7 @@ void ZigZagSkeleton::LogisticBasic(const MatrixXd& dataX, const VectorXi& dataY,
   VectorXd theta(VectorXd::Constant(n_components, 1)); // initialize theta at (+1,...,+1)
   double currentTime = 0;
 
-  const VectorXd b(sqrt(n_components) * Q.rowwise().norm());
+  const VectorXd b(sqrt((double)n_components) * Q.rowwise().norm());
   VectorXd derivative_upperbound(n_components);
   VectorXd a(n_components);
   for (unsigned int k = 0; k < n_components; ++k) {
@@ -182,11 +182,11 @@ void ZigZagSkeleton::LogisticBasic(const MatrixXd& dataX, const VectorXi& dataY,
   double minTime, simulatedTime;
 
   int i0;
-  skeletonPoints = MatrixXd(n_components,n_epochs);
+  skeletonPoints = MatrixXd(n_components,n_iter);
   skeletonPoints.col(0) = beta;
-  skeletonTimes = ArrayXd(n_epochs);
+  skeletonTimes = ArrayXd(n_iter);
 
-  for (unsigned int step = 1; step < n_epochs; ++step) {
+  for (unsigned int step = 1; step < n_iter; ++step) {
     NumericVector U(runif(n_components));
     i0 = -1;
     for (unsigned int i = 0; i < n_components; ++i) {
@@ -228,9 +228,9 @@ void ZigZagSkeleton::LogisticBasic(const MatrixXd& dataX, const VectorXi& dataY,
       skeletonPoints.col(step) = beta;
     }
   }
-  Rprintf("LogisticBasic: Fraction of accepted switches: %g\n", double(switches)/(n_epochs));
+  Rprintf("LogisticBasic: Fraction of accepted switches: %g\n", double(switches)/(n_iter));
 }
-void ZigZagSkeleton::LogisticUpperbound(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_epochs, VectorXd beta) {
+void ZigZagSkeleton::LogisticUpperbound(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta) {
   
   const MatrixXd dataXpp(preprocessLogistic(dataX));
   const unsigned int n_components = dataXpp.rows();
@@ -247,11 +247,11 @@ void ZigZagSkeleton::LogisticUpperbound(const MatrixXd& dataX, const VectorXi& d
   double minTime, simulatedTime;
   
   int i0;
-  skeletonPoints = MatrixXd(n_components,n_epochs);
+  skeletonPoints = MatrixXd(n_components,n_iter);
   skeletonPoints.col(0) = beta;
-  skeletonTimes = ArrayXd(n_epochs);
+  skeletonTimes = ArrayXd(n_iter);
   
-  for (unsigned int step = 1; step < n_epochs; ++step) {
+  for (unsigned int step = 1; step < n_iter; ++step) {
     NumericVector U(runif(n_components));
     i0 = -1;
     for (unsigned int i = 0; i < n_components; ++i) {
@@ -278,12 +278,12 @@ void ZigZagSkeleton::LogisticUpperbound(const MatrixXd& dataX, const VectorXi& d
       skeletonPoints.col(step) = beta;
     }
   }
-  Rprintf("LogisticUpperbound: Fraction of accepted switches: %g\n", double(switches)/(n_epochs));
+  Rprintf("LogisticUpperbound: Fraction of accepted switches: %g\n", double(switches)/(n_iter));
 }
 
 
 
-void ZigZagSkeleton::LogisticSubsampling(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_epochs, VectorXd beta) {
+void ZigZagSkeleton::LogisticSubsampling(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta) {
   
   const MatrixXd dataXpp(preprocessLogistic(dataX));
   const unsigned int dim = dataXpp.rows();
@@ -300,8 +300,8 @@ void ZigZagSkeleton::LogisticSubsampling(const MatrixXd& dataX, const VectorXi& 
   RNGScope scp; // initialize random number generator
   
   double minTime, simulatedTime;
-  
-  unsigned int max_switches = n_epochs;
+  const unsigned int MAX_SIZE = 1e4;
+  unsigned int max_switches = (n_iter < MAX_SIZE ? n_iter : MAX_SIZE);
   
   MatrixXd skeletonPointsTemp = MatrixXd(dim, max_switches);
   skeletonPointsTemp.col(0) = beta;
@@ -311,7 +311,7 @@ void ZigZagSkeleton::LogisticSubsampling(const MatrixXd& dataX, const VectorXi& 
   
   unsigned int i0;
   unsigned int switches = 0;
-  for (unsigned int step = 1; step < n_epochs * n_observations; ++step) {
+  for (unsigned int step = 1; step < n_iter; ++step) {
     for (unsigned int i = 0; i < dim; ++i) {
       simulatedTime = rexp(1, upperbound(i))(0);
       if (i == 0 || simulatedTime < minTime) {
@@ -343,14 +343,14 @@ void ZigZagSkeleton::LogisticSubsampling(const MatrixXd& dataX, const VectorXi& 
       skeletonPointsTemp.col(switches) = beta;
     }
   }
-  Rprintf("LogisticSubSampling: Fraction of accepted switches: %g\n", double(switches)/(n_epochs * n_observations));
+  Rprintf("LogisticSubSampling: Fraction of accepted switches: %g\n", double(switches)/n_iter);
   skeletonTimes = skeletonTimesTemp.head(switches + 1);
   skeletonPoints = skeletonPointsTemp.leftCols(switches + 1);
 }
 
 
-void ZigZagSkeleton::LogisticControlVariates(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_epochs, VectorXd beta) {
-
+void ZigZagSkeleton::LogisticControlVariates(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta) {
+  
   const MatrixXd dataXpp(preprocessLogistic(dataX));
   LogisticData data(&dataXpp, &dataY);
   const unsigned int dim = dataXpp.rows();
@@ -361,27 +361,28 @@ void ZigZagSkeleton::LogisticControlVariates(const MatrixXd& dataX, const Vector
   newtonLogistic(data, mode, precision, max_iter);
   if (beta.rows()==0)
     beta = mode;
-
+  
   VectorXd theta(VectorXd::Constant(dim,1)); // initialize theta at (+1,...,+1)
   double currentTime = 0;
   const VectorXd uniformBound(cvBound(dataXpp) * n_observations);
-  const VectorXd b(sqrt(dim) * uniformBound);
+  const VectorXd b(sqrt((double)dim) * uniformBound);
   VectorXd a((beta-mode).norm() * uniformBound);
-
+  
   RNGScope scp; // initialize random number generator
-
+  
   double minTime, simulatedTime;
-
-  unsigned int max_switches = n_epochs;
-
+  
+  const unsigned int MAX_SIZE = 1e4;
+  unsigned int max_switches = (n_iter < MAX_SIZE ? n_iter : MAX_SIZE);
+  
   MatrixXd skeletonPointsTemp = MatrixXd(dim, max_switches);
   skeletonPointsTemp.col(0) = beta;
   ArrayXd skeletonTimesTemp = ArrayXd(max_switches);
   skeletonTimesTemp[0] = currentTime;
-
+  
   int i0;
   unsigned int switches = 0;
-  for (unsigned int step = 1; step < n_epochs * n_observations; ++step) {
+  for (unsigned int step = 1; step < n_iter; ++step) {
     NumericVector U(runif(dim));
     i0 = -1;
     for (unsigned int i = 0; i < dim; ++i) {
@@ -403,8 +404,8 @@ void ZigZagSkeleton::LogisticControlVariates(const MatrixXd& dataX, const Vector
       double simulated_rate = a(i0) + b(i0) * minTime;
       if (switch_rate > simulated_rate) {
         stop("LogisticControlVariates:: Error: switch rate larger than its supposed upper bound.");
-//        Rprintf("  Step: %d, Upper bound: %g, actual switch rate: %g.\n", step, simulated_rate, switch_rate);
-//        Rprintf("  Index: %d, Beta(0): %g, Beta(1): %g\n", i0, beta(0), beta(1));
+        //        Rprintf("  Step: %d, Upper bound: %g, actual switch rate: %g.\n", step, simulated_rate, switch_rate);
+        //        Rprintf("  Index: %d, Beta(0): %g, Beta(1): %g\n", i0, beta(0), beta(1));
         break;
       }
       double V = runif(1)(0);
@@ -413,7 +414,7 @@ void ZigZagSkeleton::LogisticControlVariates(const MatrixXd& dataX, const Vector
         ++switches;
         if (switches >= max_switches) {
           max_switches *= 2;
-//          Rprintf("Resizing to size %d...\n", max_switches);
+          //          Rprintf("Resizing to size %d...\n", max_switches);
           skeletonTimesTemp.conservativeResize(max_switches);
           skeletonPointsTemp.conservativeResize(dim, max_switches);
         }
@@ -423,7 +424,7 @@ void ZigZagSkeleton::LogisticControlVariates(const MatrixXd& dataX, const Vector
       a = (beta-mode).norm() * uniformBound;
     }
   }
-  Rprintf("LogisticControlVariates: Fraction of accepted switches: %g\n", double(switches)/(n_epochs * n_observations));
+  Rprintf("LogisticControlVariates: Fraction of accepted switches: %g\n", double(switches)/n_iter);
   skeletonTimes = skeletonTimesTemp.head(switches + 1);
   skeletonPoints = skeletonPointsTemp.leftCols(switches + 1);
 }
@@ -518,7 +519,7 @@ Eigen::MatrixXd ZigZagSkeleton::sample(const unsigned int n_samples) {
 //'
 //' @param dataX Matrix containing the independent variables x. The i-th column represents the i-th observation with components x_{1,i}, ..., x_{d-1,i}.
 //' @param dataY Vector of length n containing {0, 1}-valued observations of the dependent variable y.
-//' @param n_epochs Integer indicating how many times the algorithm processes an equivalent of the full dataset. For basic zig-zag this is identical to the number of iterations of the algorithm. For subsampling and control variates zig-zag this is n times the number of iterations, since every iteration has cost 1/n of an epoch. Here n is the number of observations.
+//' @param n_iter Integer indicating the number of iterations, i.e. the number of proposed switches.
 //' @param subsampling Boolean. Use Zig-Zag with subsampling if TRUE. 
 //' @param controlvariates Boolean. Use Zig-Zag with control variates if TRUE (overriding any value of \code{subsampling}).
 //' @param beta0 Optional argument indicating the starting point for the Zig-Zag sampler
@@ -554,7 +555,7 @@ Eigen::MatrixXd ZigZagSkeleton::sample(const unsigned int n_samples) {
 //' points(result$samples[1,], result$samples[2,], col='magenta')
 //' @export
 // [[Rcpp::export]]
-List ZigZagLogistic(const Eigen::MatrixXd dataX, const Eigen::VectorXi dataY, const unsigned int n_epochs, const bool subsampling = true, const bool controlvariates = true, const NumericVector beta0 = NumericVector(0), const unsigned int n_samples = 0, const unsigned int n_batches = 0, const bool computeCovariance = false, const bool upperbound = false) {
+List ZigZagLogistic(const Eigen::MatrixXd dataX, const Eigen::VectorXi dataY, const unsigned int n_iter, const bool subsampling = true, const bool controlvariates = true, const NumericVector beta0 = NumericVector(0), const unsigned int n_samples = 0, const unsigned int n_batches = 0, const bool computeCovariance = false, const bool upperbound = false) {
   const int dim = beta0.length();
   VectorXd beta(dim);
   for (int i = 0; i < dim; ++i)
@@ -562,19 +563,19 @@ List ZigZagLogistic(const Eigen::MatrixXd dataX, const Eigen::VectorXi dataY, co
   ZigZagSkeleton skeleton;
   if (upperbound) {
 //    Rprintf("ZZ-UB\n");
-    skeleton.LogisticUpperbound(dataX, dataY, n_epochs, beta);
+    skeleton.LogisticUpperbound(dataX, dataY, n_iter, beta);
   }
   else if (controlvariates) {
 //    Rprintf("ZZ-CV\n");
-    skeleton.LogisticControlVariates(dataX, dataY, n_epochs, beta);
+    skeleton.LogisticControlVariates(dataX, dataY, n_iter, beta);
   }
   else if (subsampling && !controlvariates) {
 //    Rprintf("ZZ-SS\n");
-    skeleton.LogisticSubsampling(dataX, dataY, n_epochs, beta);
+    skeleton.LogisticSubsampling(dataX, dataY, n_iter, beta);
   }
   else {
 //    Rprintf("ZZ\n");
-    skeleton.LogisticBasic(dataX, dataY, n_epochs, beta);
+    skeleton.LogisticBasic(dataX, dataY, n_iter, beta);
   }
   if (n_samples > 0)
     skeleton.sample(n_samples);
@@ -739,7 +740,7 @@ double newtonLogistic(const LogisticData& data, VectorXd& beta, double precision
     grad = data.gradient(beta);
   }
   if (i == max_iter) {
-    warning("Maximum number of iterations (", max_iter, ") reached without convergence in Newton's method in computing control variate.");
+    Rprintf("Maximum number of iterations (", max_iter, ") reached without convergence in Newton's method in computing control variate.");
   }
   else
     Rprintf("Newton: Converged to local minimum in %d iterations.\n", i);

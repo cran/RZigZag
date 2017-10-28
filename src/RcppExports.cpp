@@ -7,14 +7,14 @@
 using namespace Rcpp;
 
 // ZigZagLogistic
-List ZigZagLogistic(const Eigen::MatrixXd dataX, const Eigen::VectorXi dataY, const unsigned int n_epochs, const bool subsampling, const bool controlvariates, const NumericVector beta0, const unsigned int n_samples, const unsigned int n_batches, const bool computeCovariance, const bool upperbound);
-RcppExport SEXP _RZigZag_ZigZagLogistic(SEXP dataXSEXP, SEXP dataYSEXP, SEXP n_epochsSEXP, SEXP subsamplingSEXP, SEXP controlvariatesSEXP, SEXP beta0SEXP, SEXP n_samplesSEXP, SEXP n_batchesSEXP, SEXP computeCovarianceSEXP, SEXP upperboundSEXP) {
+List ZigZagLogistic(const Eigen::MatrixXd dataX, const Eigen::VectorXi dataY, const unsigned int n_iter, const bool subsampling, const bool controlvariates, const NumericVector beta0, const unsigned int n_samples, const unsigned int n_batches, const bool computeCovariance, const bool upperbound);
+RcppExport SEXP _RZigZag_ZigZagLogistic(SEXP dataXSEXP, SEXP dataYSEXP, SEXP n_iterSEXP, SEXP subsamplingSEXP, SEXP controlvariatesSEXP, SEXP beta0SEXP, SEXP n_samplesSEXP, SEXP n_batchesSEXP, SEXP computeCovarianceSEXP, SEXP upperboundSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Eigen::MatrixXd >::type dataX(dataXSEXP);
     Rcpp::traits::input_parameter< const Eigen::VectorXi >::type dataY(dataYSEXP);
-    Rcpp::traits::input_parameter< const unsigned int >::type n_epochs(n_epochsSEXP);
+    Rcpp::traits::input_parameter< const unsigned int >::type n_iter(n_iterSEXP);
     Rcpp::traits::input_parameter< const bool >::type subsampling(subsamplingSEXP);
     Rcpp::traits::input_parameter< const bool >::type controlvariates(controlvariatesSEXP);
     Rcpp::traits::input_parameter< const NumericVector >::type beta0(beta0SEXP);
@@ -22,7 +22,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const unsigned int >::type n_batches(n_batchesSEXP);
     Rcpp::traits::input_parameter< const bool >::type computeCovariance(computeCovarianceSEXP);
     Rcpp::traits::input_parameter< const bool >::type upperbound(upperboundSEXP);
-    rcpp_result_gen = Rcpp::wrap(ZigZagLogistic(dataX, dataY, n_epochs, subsampling, controlvariates, beta0, n_samples, n_batches, computeCovariance, upperbound));
+    rcpp_result_gen = Rcpp::wrap(ZigZagLogistic(dataX, dataY, n_iter, subsampling, controlvariates, beta0, n_samples, n_batches, computeCovariance, upperbound));
     return rcpp_result_gen;
 END_RCPP
 }

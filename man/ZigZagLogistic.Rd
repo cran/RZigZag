@@ -4,7 +4,7 @@
 \alias{ZigZagLogistic}
 \title{ZigZagLogistic}
 \usage{
-ZigZagLogistic(dataX, dataY, n_epochs, subsampling = TRUE,
+ZigZagLogistic(dataX, dataY, n_iter, subsampling = TRUE,
   controlvariates = TRUE, beta0 = numeric(0), n_samples = 0L,
   n_batches = 0L, computeCovariance = FALSE, upperbound = FALSE)
 }
@@ -13,7 +13,7 @@ ZigZagLogistic(dataX, dataY, n_epochs, subsampling = TRUE,
 
 \item{dataY}{Vector of length n containing {0, 1}-valued observations of the dependent variable y.}
 
-\item{n_epochs}{Integer indicating how many times the algorithm processes an equivalent of the full dataset. For basic zig-zag this is identical to the number of iterations of the algorithm. For subsampling and control variates zig-zag this is n times the number of iterations, since every iteration has cost 1/n of an epoch. Here n is the number of observations.}
+\item{n_iter}{Integer indicating the number of iterations, i.e. the number of proposed switches.}
 
 \item{subsampling}{Boolean. Use Zig-Zag with subsampling if TRUE.}
 
