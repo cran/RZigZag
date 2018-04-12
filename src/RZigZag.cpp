@@ -1,6 +1,6 @@
 // RZigZag.cpp : implements Zig-Zag with sub-sampling and control variates (ZZ-CV)
 //
-// Copyright (C) 2017 Joris Bierkens
+// Copyright (C) 2017--2018 Joris Bierkens
 //
 // This file is part of RZigZag.
 //
@@ -51,7 +51,7 @@ VectorXi sample(const unsigned int n, const unsigned int k) {
   }
   return samples;
 }
-void ZigZagSkeleton::computeBatchMeans(const unsigned int n_batches) {
+void Skeleton::computeBatchMeans(const unsigned int n_batches) {
   if (n_batches == 0)
     stop("n_batches should be positive.");
   const unsigned int n_skeletonPoints = skeletonTimes.rows();
@@ -96,7 +96,7 @@ void ZigZagSkeleton::computeBatchMeans(const unsigned int n_batches) {
   ESS = (covarianceMatrix.diagonal().array()/asVarEst.array() * t_max).matrix();
 }
 
-void ZigZagSkeleton::computeCovariance() {
+void Skeleton::computeCovariance() {
   const unsigned int n_skeletonPoints = skeletonTimes.rows();
   const unsigned int dim = skeletonPoints.rows();
   const double t_max = skeletonTimes[n_skeletonPoints-1];
@@ -152,7 +152,7 @@ MatrixXd LogisticData::hessian(const VectorXd& beta) const {
   return hess;
 }
 
-void ZigZagSkeleton::LogisticBasic(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta) {
+void Skeleton::LogisticBasicZZ(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta) {
 
   const MatrixXd dataXpp(preprocessLogistic(dataX));
   const unsigned int n_components = dataXpp.rows();
@@ -197,7 +197,7 @@ void ZigZagSkeleton::LogisticBasic(const MatrixXd& dataX, const VectorXi& dataY,
       }
     }
     if (minTime < 0) {
-      stop("Zig zag wandered off to infinity.");
+      stop("Zigzag wandered off to infinity.");
     }
     else {
       currentTime = currentTime + minTime;
@@ -228,9 +228,9 @@ void ZigZagSkeleton::LogisticBasic(const MatrixXd& dataX, const VectorXi& dataY,
       skeletonPoints.col(step) = beta;
     }
   }
-  Rprintf("LogisticBasic: Fraction of accepted switches: %g\n", double(switches)/(n_iter));
+  Rprintf("LogisticBasicZZ: Fraction of accepted switches: %g\n", double(switches)/(n_iter));
 }
-void ZigZagSkeleton::LogisticUpperbound(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta) {
+void Skeleton::LogisticUpperboundZZ(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta) {
   
   const MatrixXd dataXpp(preprocessLogistic(dataX));
   const unsigned int n_components = dataXpp.rows();
@@ -278,12 +278,12 @@ void ZigZagSkeleton::LogisticUpperbound(const MatrixXd& dataX, const VectorXi& d
       skeletonPoints.col(step) = beta;
     }
   }
-  Rprintf("LogisticUpperbound: Fraction of accepted switches: %g\n", double(switches)/(n_iter));
+  Rprintf("LogisticUpperboundZZ: Fraction of accepted switches: %g\n", double(switches)/(n_iter));
 }
 
 
 
-void ZigZagSkeleton::LogisticSubsampling(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta) {
+void Skeleton::LogisticSubsamplingZZ(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta) {
   
   const MatrixXd dataXpp(preprocessLogistic(dataX));
   const unsigned int dim = dataXpp.rows();
@@ -325,7 +325,7 @@ void ZigZagSkeleton::LogisticSubsampling(const MatrixXd& dataX, const VectorXi& 
     double derivative = n_observations * dataXpp(i0,J) * (1.0/(1.0+exp(-dataXpp.col(J).dot(beta))) - dataY(J));
     double V = runif(1)(0);
     if (derivative > upperbound(i0)) {
-      Rprintf("LogisticSubsampling:: Error: derivative larger than its supposed upper bound.\n");
+      Rprintf("LogisticSubsamplingZZ:: Error: derivative larger than its supposed upper bound.\n");
       Rprintf("  Upper bound: %g, actual derivative: %g.\n", upperbound(i0), derivative);
       Rprintf("  Index: %d, Beta(0): %g, Beta(1): %g\n", i0, beta(0), beta(1));
       break;
@@ -349,7 +349,7 @@ void ZigZagSkeleton::LogisticSubsampling(const MatrixXd& dataX, const VectorXi& 
 }
 
 
-void ZigZagSkeleton::LogisticControlVariates(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta) {
+void Skeleton::LogisticCVZZ(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta) {
   
   const MatrixXd dataXpp(preprocessLogistic(dataX));
   LogisticData data(&dataXpp, &dataY);
@@ -403,7 +403,7 @@ void ZigZagSkeleton::LogisticControlVariates(const MatrixXd& dataX, const Vector
       double switch_rate = theta(i0) * n_observations * dataXpp(i0,J) * (1.0/(1.0+exp(-dataXpp.col(J).dot(beta)))-1.0/(1.0+exp(-dataXpp.col(J).dot(mode))));
       double simulated_rate = a(i0) + b(i0) * minTime;
       if (switch_rate > simulated_rate) {
-        stop("LogisticControlVariates:: Error: switch rate larger than its supposed upper bound.");
+        stop("LogisticCVZZ:: Error: switch rate larger than its supposed upper bound.");
         //        Rprintf("  Step: %d, Upper bound: %g, actual switch rate: %g.\n", step, simulated_rate, switch_rate);
         //        Rprintf("  Index: %d, Beta(0): %g, Beta(1): %g\n", i0, beta(0), beta(1));
         break;
@@ -424,12 +424,12 @@ void ZigZagSkeleton::LogisticControlVariates(const MatrixXd& dataX, const Vector
       a = (beta-mode).norm() * uniformBound;
     }
   }
-  Rprintf("LogisticControlVariates: Fraction of accepted switches: %g\n", double(switches)/n_iter);
+  Rprintf("LogisticCVZZ: Fraction of accepted switches: %g\n", double(switches)/n_iter);
   skeletonTimes = skeletonTimesTemp.head(switches + 1);
   skeletonPoints = skeletonPointsTemp.leftCols(switches + 1);
 }
 
-void ZigZagSkeleton::GaussianBasic(const MatrixXd& V, const VectorXd& mu, const unsigned int n_steps, const VectorXd& x0) {
+void Skeleton::GaussianZZ(const MatrixXd& V, const VectorXd& mu, const unsigned int n_steps, const VectorXd& x0) {
   // Gaussian skeleton
   // input: V precision matrix (inverse covariance), mu mean, x0 initial condition, n_steps number of switches
   // invariant: w = V theta, z = V (x-mu)
@@ -477,12 +477,79 @@ void ZigZagSkeleton::GaussianBasic(const MatrixXd& V, const VectorXd& mu, const 
   }
 }
 
-List ZigZagSkeleton::toR() {
+VectorXd resampleVelocity(const unsigned int dim, const bool unit_velocity = true) {
+  // helper function for GaussianBPS
+  VectorXd v = as<Eigen::Map<VectorXd> >(rnorm(dim));
+//  std::cout << v(0) << ", " << v(1) << std::endl;
+  if (unit_velocity)
+    v.normalize();
+  return v;
+}
+
+void Skeleton::GaussianBPS(const MatrixXd& V, const VectorXd& mu, const unsigned int n_steps, const VectorXd& x0, const double refresh_rate, const bool unit_velocity) {
+  
+  // Gaussian skeleton using BPS
+  // input: V precision matrix (inverse covariance), mu mean, x0 initial condition, n_steps number of switches
+  
+  if (refresh_rate < 0)
+    stop("GaussianBPS error: refresh_rate should be non-negative.");
+
+  const unsigned int dim = V.cols();
+  VectorXd x(x0);
+//  VectorXd v = VectorXd::Constant(dim, 1/sqrt(dim)); // initialize speed at (1/sqrt(d), ..., 1/sqrt(d))
+  VectorXd v = resampleVelocity(dim, unit_velocity);
+
+  RNGScope scp; // initialize random number generator
+  
+  double t, t_reflect, t_refresh;
+  skeletonPoints = MatrixXd(dim,n_steps);
+  skeletonPoints.col(0) = x0;
+  skeletonTimes = ArrayXd(n_steps);
+  double currentTime = 0;
+  
+  VectorXd gradient = V * (x - mu); // gradient
+  VectorXd w = V * v; // useful invariant
+
+  double a = v.dot(gradient);
+  double b = v.dot(w);
+  
+  for (unsigned int step = 1; step < n_steps; ++step) {
+    NumericVector U(runif(2));
+    t_reflect = getRandomTime(a, b, U(0));
+    if (refresh_rate <= 0) {
+      t_refresh = -1; // indicating refresh rate = infinity
+      t = t_reflect;
+    }
+    else {
+      t_refresh = -log(U(1))/refresh_rate;
+      t = (t_reflect < t_refresh ? t_reflect : t_refresh);
+    }
+    currentTime = currentTime + t;
+    x = x + t * v;
+    gradient = gradient + t * w;
+
+    if (t_refresh < 0 || t_reflect < t_refresh) {
+      VectorXd normalized_gradient = gradient.normalized(); // for projection
+      VectorXd delta_v = -2 * (v.dot(normalized_gradient)) * normalized_gradient;
+      v = v + delta_v;
+    }
+    else
+      v = resampleVelocity(dim, unit_velocity);
+//    Rprintf("%g\n", v.norm());
+    w = V * v; // preserves invariant for w
+    a = v.dot(gradient);
+    b = v.dot(w);
+    skeletonTimes(step) = currentTime;
+    skeletonPoints.col(step) = x;
+  }
+}
+
+List Skeleton::toR() {
   // output: R list consisting of skeletonTimes and skeletonPoints, and if samples are collected these too
   return List::create(Named("skeletonTimes") = skeletonTimes, Named("skeletonPoints") = skeletonPoints, Named("samples") = samples, Named("mode") = mode, Named("batchMeans") = batchMeans, Named("means") = means, Named("covariance") = covarianceMatrix, Named("asVarEst") = asVarEst, Named("ESS") = ESS);
 }
 
-Eigen::MatrixXd ZigZagSkeleton::sample(const unsigned int n_samples) {
+Eigen::MatrixXd Skeleton::sample(const unsigned int n_samples) {
 
   const unsigned int n_steps = skeletonTimes.size();
   const unsigned int dim = skeletonPoints.rows();
@@ -560,22 +627,22 @@ List ZigZagLogistic(const Eigen::MatrixXd dataX, const Eigen::VectorXi dataY, co
   VectorXd beta(dim);
   for (int i = 0; i < dim; ++i)
     beta[i] = beta0[i];
-  ZigZagSkeleton skeleton;
+  Skeleton skeleton;
   if (upperbound) {
 //    Rprintf("ZZ-UB\n");
-    skeleton.LogisticUpperbound(dataX, dataY, n_iter, beta);
+    skeleton.LogisticUpperboundZZ(dataX, dataY, n_iter, beta);
   }
   else if (controlvariates) {
 //    Rprintf("ZZ-CV\n");
-    skeleton.LogisticControlVariates(dataX, dataY, n_iter, beta);
+    skeleton.LogisticCVZZ(dataX, dataY, n_iter, beta);
   }
   else if (subsampling && !controlvariates) {
 //    Rprintf("ZZ-SS\n");
-    skeleton.LogisticSubsampling(dataX, dataY, n_iter, beta);
+    skeleton.LogisticSubsamplingZZ(dataX, dataY, n_iter, beta);
   }
   else {
 //    Rprintf("ZZ\n");
-    skeleton.LogisticBasic(dataX, dataY, n_iter, beta);
+    skeleton.LogisticBasicZZ(dataX, dataY, n_iter, beta);
   }
   if (n_samples > 0)
     skeleton.sample(n_samples);
@@ -593,8 +660,8 @@ List ZigZagLogistic(const Eigen::MatrixXd dataX, const Eigen::VectorXi dataY, co
 //'
 //' @param V the inverse covariance matrix of the Gaussian target distribution
 //' @param mu mean of the Gaussian target distribution
-//' @param n_epochs Integer indicating how many times the algorithm processes an equivalent of the full dataset. For basic zig-zag this is identical to the number of iterations of the algorithm. For subsampling and control variates zig-zag this is n times the number of iterations, since every iteration has cost 1/n of an epoch. Here n is the number of observations.
-//' @param x0 optional vector argument specifying the starting point for the Zig-Zag sampler
+//' @param n_steps Number of algorithm iterations; will result in the equivalent amount of skeleton points in Gaussian case because no rejections are needed.
+//' @param x0 starting point
 //' @param n_samples Number of discrete time samples to extract from the Zig-Zag skeleton.
 //' @param n_batches If non-zero, estimate effective sample size through the batch means method, with n_batches number of batches.
 //' @param computeCovariance Boolean indicating whether to estimate the covariance matrix.
@@ -610,24 +677,24 @@ List ZigZagLogistic(const Eigen::MatrixXd dataX, const Eigen::VectorXi dataY, co
 //' @return \code{asVarEst}: If \code{n_batches > 0} this is an estimate of the asymptotic variance along each component
 //' @return \code{ESS}: If \code{n_batches > 0} this is an estimate of the effective sample size along each component
 //' @examples
-//' V <- matrix(c(3,1,1,3),nrow=2,ncol=2)
+//' V <- matrix(c(3,1,1,3),nrow=2)
 //' mu <- c(2,2)
-//' result <- ZigZagGaussian(V, mu, 100, n_samples = 10)
+//' x0 <- c(0,0)
+//' result <- ZigZagGaussian(V, mu, 100, x0, n_samples = 10)
 //' plot(result$skeletonPoints[1,], result$skeletonPoints[2,],type='l',asp=1)
 //' points(result$samples[1,], result$samples[2,], col='magenta')
 //' @export
 // [[Rcpp::export]]
-List ZigZagGaussian(const Eigen::MatrixXd V, const Eigen::VectorXd mu, const unsigned int n_epochs, const NumericVector x0 = NumericVector(0), const unsigned int n_samples=0, const unsigned int n_batches=0, bool computeCovariance=false, const double c = 1) {
-  const unsigned int dim = V.cols();
-  VectorXd x(dim);
-  if (x0.length() == 0)
+List ZigZagGaussian(const Eigen::MatrixXd V, const Eigen::VectorXd mu, const unsigned int n_steps, const Eigen::VectorXd x0, const unsigned int n_samples=0, const unsigned int n_batches=0, bool computeCovariance=false, const double c = 1) {
+/*  const unsigned int dim = V.cols();
+  if (x0.size() == 0)
     x = VectorXd::Zero(dim); // start from origin by default
   else
     for (int i = 0; i < dim; ++i)
-      x[i] = x[i];
-
-  ZigZagSkeleton skeleton;
-  skeleton.GaussianBasic(V, mu, n_epochs, x);
+      x[i] = x0[i];
+*/
+  Skeleton skeleton;
+  skeleton.GaussianZZ(V, mu, n_steps, x0);
   if (n_samples > 0)
     skeleton.sample(n_samples);
   if (n_batches > 0)
@@ -637,6 +704,59 @@ List ZigZagGaussian(const Eigen::MatrixXd V, const Eigen::VectorXd mu, const uns
   return skeleton.toR();
 }
 
+
+//' BPSGaussian
+//' 
+//' Applies the BPS Sampler to a Gaussian target distribution, as detailed in Bouchard-Côté et al, 2017.
+//' Assume potential of the form \code{Psi(x) = (x - mu)^T V (x - mu)/2}, i.e. a Gaussian with mean vector \code{mu} and covariance matrix \code{inv(V)}
+//'
+//' @param V the inverse covariance matrix of the Gaussian target distribution
+//' @param mu mean of the Gaussian target distribution
+//' @param n_steps Number of algorithm iterations; will result in the equivalent amount of skeleton points in Gaussian case because no rejections are needed.
+//' @param x0 starting point
+//' @param refresh_rate \code{lambda_refresh}
+//' @param unit_velocity TRUE indicates velocities uniform on unit sphere, FALSE indicates standard normal velocities
+//' @param n_samples Number of discrete time samples to extract from the Zig-Zag skeleton.
+//' @param n_batches If non-zero, estimate effective sample size through the batch means method, with n_batches number of batches.
+//' @param computeCovariance Boolean indicating whether to estimate the covariance matrix.
+//' @param c optional argument, specifies which fraction of the data is used to determine a reference point for ZZ-CV. Values for c < 1 give a suboptimal reference point.
+//' @return Returns a list with the following objects:
+//' @return \code{skeletonTimes}: Vector of switching times
+//' @return \code{skeletonPoints}: Matrix whose columns are locations of switches. The number of columns is identical to the length of \code{skeletonTimes}
+//' @return \code{samples}: If \code{n_samples > 0}, this is a matrix whose \code{n_samples} columns are samples along the Zig-Zag trajectory.
+//' @return \code{mode}: If \code{controlvariates = TRUE}, this is a vector containing the posterior mode obtained using Newton's method. 
+//' @return \code{batchMeans}: If \code{n_batches > 0}, this is a matrix whose \code{n_batches} columns are the batch means
+//' @return \code{means}: If \code{n_batches > 0}, this is a vector containing the means of each coordinate along the Zig-Zag trajectory 
+//' @return \code{covariance} :If \code{n_batches > 0} or \code{computeCovariance = TRUE}, this is a matrix containing the sample covariance matrix along the trajectory
+//' @return \code{asVarEst}: If \code{n_batches > 0} this is an estimate of the asymptotic variance along each component
+//' @return \code{ESS}: If \code{n_batches > 0} this is an estimate of the effective sample size along each component
+//' @examples
+//' V <- matrix(c(3,1,1,3),nrow=2)
+//' mu <- c(2,2)
+//' x0 <- c(0,0)
+//' result <- BPSGaussian(V, mu, 100, x0, n_samples = 10)
+//' plot(result$skeletonPoints[1,], result$skeletonPoints[2,],type='l',asp=1)
+//' points(result$samples[1,], result$samples[2,], col='magenta')
+//' @export
+// [[Rcpp::export]]
+List BPSGaussian(const Eigen::MatrixXd V, const Eigen::VectorXd mu, const unsigned int n_steps, const Eigen::VectorXd x0, const double refresh_rate = 1, const bool unit_velocity = true, const unsigned int n_samples=0, const unsigned int n_batches=0, bool computeCovariance=false, const double c = 1) {
+  /*  const unsigned int dim = V.cols();
+   if (x0.size() == 0)
+   x = VectorXd::Zero(dim); // start from origin by default
+   else
+   for (int i = 0; i < dim; ++i)
+   x[i] = x0[i];
+   */
+  Skeleton skeleton;
+  skeleton.GaussianBPS(V, mu, n_steps, x0, refresh_rate, unit_velocity);
+  if (n_samples > 0)
+    skeleton.sample(n_samples);
+  if (n_batches > 0)
+    skeleton.computeBatchMeans(n_batches);
+  if (computeCovariance)
+    skeleton.computeCovariance();
+  return skeleton.toR();
+}
 
 
 double getRandomTime(double a, double b, double u) {

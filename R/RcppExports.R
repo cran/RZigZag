@@ -54,8 +54,8 @@ ZigZagLogistic <- function(dataX, dataY, n_iter, subsampling = TRUE, controlvari
 #'
 #' @param V the inverse covariance matrix of the Gaussian target distribution
 #' @param mu mean of the Gaussian target distribution
-#' @param n_epochs Integer indicating how many times the algorithm processes an equivalent of the full dataset. For basic zig-zag this is identical to the number of iterations of the algorithm. For subsampling and control variates zig-zag this is n times the number of iterations, since every iteration has cost 1/n of an epoch. Here n is the number of observations.
-#' @param x0 optional vector argument specifying the starting point for the Zig-Zag sampler
+#' @param n_steps Number of algorithm iterations; will result in the equivalent amount of skeleton points in Gaussian case because no rejections are needed.
+#' @param x0 starting point
 #' @param n_samples Number of discrete time samples to extract from the Zig-Zag skeleton.
 #' @param n_batches If non-zero, estimate effective sample size through the batch means method, with n_batches number of batches.
 #' @param computeCovariance Boolean indicating whether to estimate the covariance matrix.
@@ -71,13 +71,51 @@ ZigZagLogistic <- function(dataX, dataY, n_iter, subsampling = TRUE, controlvari
 #' @return \code{asVarEst}: If \code{n_batches > 0} this is an estimate of the asymptotic variance along each component
 #' @return \code{ESS}: If \code{n_batches > 0} this is an estimate of the effective sample size along each component
 #' @examples
-#' V <- matrix(c(3,1,1,3),nrow=2,ncol=2)
+#' V <- matrix(c(3,1,1,3),nrow=2)
 #' mu <- c(2,2)
-#' result <- ZigZagGaussian(V, mu, 100, n_samples = 10)
+#' x0 <- c(0,0)
+#' result <- ZigZagGaussian(V, mu, 100, x0, n_samples = 10)
 #' plot(result$skeletonPoints[1,], result$skeletonPoints[2,],type='l',asp=1)
 #' points(result$samples[1,], result$samples[2,], col='magenta')
 #' @export
-ZigZagGaussian <- function(V, mu, n_epochs, x0 = numeric(0), n_samples = 0L, n_batches = 0L, computeCovariance = FALSE, c = 1) {
-    .Call('_RZigZag_ZigZagGaussian', PACKAGE = 'RZigZag', V, mu, n_epochs, x0, n_samples, n_batches, computeCovariance, c)
+ZigZagGaussian <- function(V, mu, n_steps, x0, n_samples = 0L, n_batches = 0L, computeCovariance = FALSE, c = 1) {
+    .Call('_RZigZag_ZigZagGaussian', PACKAGE = 'RZigZag', V, mu, n_steps, x0, n_samples, n_batches, computeCovariance, c)
+}
+
+#' BPSGaussian
+#' 
+#' Applies the BPS Sampler to a Gaussian target distribution, as detailed in Bouchard-Côté et al, 2017.
+#' Assume potential of the form \code{Psi(x) = (x - mu)^T V (x - mu)/2}, i.e. a Gaussian with mean vector \code{mu} and covariance matrix \code{inv(V)}
+#'
+#' @param V the inverse covariance matrix of the Gaussian target distribution
+#' @param mu mean of the Gaussian target distribution
+#' @param n_steps Number of algorithm iterations; will result in the equivalent amount of skeleton points in Gaussian case because no rejections are needed.
+#' @param x0 starting point
+#' @param refresh_rate \code{lambda_refresh}
+#' @param unit_velocity TRUE indicates velocities uniform on unit sphere, FALSE indicates standard normal velocities
+#' @param n_samples Number of discrete time samples to extract from the Zig-Zag skeleton.
+#' @param n_batches If non-zero, estimate effective sample size through the batch means method, with n_batches number of batches.
+#' @param computeCovariance Boolean indicating whether to estimate the covariance matrix.
+#' @param c optional argument, specifies which fraction of the data is used to determine a reference point for ZZ-CV. Values for c < 1 give a suboptimal reference point.
+#' @return Returns a list with the following objects:
+#' @return \code{skeletonTimes}: Vector of switching times
+#' @return \code{skeletonPoints}: Matrix whose columns are locations of switches. The number of columns is identical to the length of \code{skeletonTimes}
+#' @return \code{samples}: If \code{n_samples > 0}, this is a matrix whose \code{n_samples} columns are samples along the Zig-Zag trajectory.
+#' @return \code{mode}: If \code{controlvariates = TRUE}, this is a vector containing the posterior mode obtained using Newton's method. 
+#' @return \code{batchMeans}: If \code{n_batches > 0}, this is a matrix whose \code{n_batches} columns are the batch means
+#' @return \code{means}: If \code{n_batches > 0}, this is a vector containing the means of each coordinate along the Zig-Zag trajectory 
+#' @return \code{covariance} :If \code{n_batches > 0} or \code{computeCovariance = TRUE}, this is a matrix containing the sample covariance matrix along the trajectory
+#' @return \code{asVarEst}: If \code{n_batches > 0} this is an estimate of the asymptotic variance along each component
+#' @return \code{ESS}: If \code{n_batches > 0} this is an estimate of the effective sample size along each component
+#' @examples
+#' V <- matrix(c(3,1,1,3),nrow=2)
+#' mu <- c(2,2)
+#' x0 <- c(0,0)
+#' result <- BPSGaussian(V, mu, 100, x0, n_samples = 10)
+#' plot(result$skeletonPoints[1,], result$skeletonPoints[2,],type='l',asp=1)
+#' points(result$samples[1,], result$samples[2,], col='magenta')
+#' @export
+BPSGaussian <- function(V, mu, n_steps, x0, refresh_rate = 1, unit_velocity = TRUE, n_samples = 0L, n_batches = 0L, computeCovariance = FALSE, c = 1) {
+    .Call('_RZigZag_BPSGaussian', PACKAGE = 'RZigZag', V, mu, n_steps, x0, refresh_rate, unit_velocity, n_samples, n_batches, computeCovariance, c)
 }
 

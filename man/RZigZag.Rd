@@ -6,10 +6,10 @@
 \alias{RZigZag-package}
 \title{RZigZag}
 \description{
-Implements the Zig-Zag algorithm with subsampling and control variates (ZZ-CV) of (Bierkens, Fearnhead, Roberts, 2016) \url{https://arxiv.org/abs/1607.03188} as applied to Bayesian logistic regression, as well as basic Zig-Zag for a Gaussian target distribution.
+Implements the Zig-Zag algorithm with subsampling and control variates (ZZ-CV) of (Bierkens, Fearnhead, Roberts, 2018) \url{https://arxiv.org/abs/1607.03188} as applied to Bayesian logistic regression, as well as basic Zig-Zag for a Gaussian target distribution.
 }
 \details{
-This package currently consists of two functions, \code{\link{ZigZagLogistic}} for logistic regression and \code{\link{ZigZagGaussian}} for multivariate Gaussian.
+This package currently consists of the following functions: \code{\link{ZigZagLogistic}} for logistic regression, \code{\link{ZigZagGaussian}} for multivariate Gaussian, and \code{\link{BPSGaussian}} for multivariate Gaussian using BPS.
 }
 \author{
 Joris Bierkens

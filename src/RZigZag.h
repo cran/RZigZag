@@ -1,6 +1,6 @@
-// RZigZag.h : implements Zig-Zag with sub-sampling and control variates (ZZ-CV)
+// RZigZag.h : implements Zig-Zag and other PDMP samplers
 //
-// Copyright (C) 2017 Joris Bierkens
+// Copyright (C) 2017--2018 Joris Bierkens
 //
 // This file is part of RZigZag.
 //
@@ -36,15 +36,16 @@ double derivativeLogistic(const MatrixXd& dataX, const VectorXi& dataY, const Ve
 VectorXd logisticUpperbound(const MatrixXd& dataX);
 VectorXd cvBound(const MatrixXd& dataX);
 
-class ZigZagSkeleton {
+class Skeleton {
 public:
   MatrixXd sample(const unsigned int n_samples);
   List toR();
-  void LogisticBasic(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta = VectorXd::Zero(0)); // logistic regression with zig zag
-  void LogisticUpperbound(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta0 = VectorXd::Zero(0)); 
-  void LogisticSubsampling(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta = VectorXd::Zero(0));
-  void LogisticControlVariates(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta = VectorXd::Zero(0));
-  void GaussianBasic(const MatrixXd& V, const VectorXd& mu, const unsigned int n_steps, const VectorXd& x0); // sample Gaussian with precision matrix V
+  void LogisticBasicZZ(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta = VectorXd::Zero(0)); // logistic regression with zig zag
+  void LogisticUpperboundZZ(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta0 = VectorXd::Zero(0)); 
+  void LogisticSubsamplingZZ(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta = VectorXd::Zero(0));
+  void LogisticCVZZ(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta = VectorXd::Zero(0)); // control variates zigzag
+  void GaussianZZ(const MatrixXd& V, const VectorXd& mu, const unsigned int n_steps, const VectorXd& x0); // sample Gaussian with precision matrix V
+  void GaussianBPS(const MatrixXd& V, const VectorXd& mu, const unsigned int n_steps, const VectorXd& x0, const double refresh_rate, const bool unit_velocity = true); // sample Gaussian with precision matrix V
   void computeBatchMeans(const unsigned int n_batches);
   void computeCovariance();
 

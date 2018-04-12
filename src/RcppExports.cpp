@@ -27,20 +27,40 @@ BEGIN_RCPP
 END_RCPP
 }
 // ZigZagGaussian
-List ZigZagGaussian(const Eigen::MatrixXd V, const Eigen::VectorXd mu, const unsigned int n_epochs, const NumericVector x0, const unsigned int n_samples, const unsigned int n_batches, bool computeCovariance, const double c);
-RcppExport SEXP _RZigZag_ZigZagGaussian(SEXP VSEXP, SEXP muSEXP, SEXP n_epochsSEXP, SEXP x0SEXP, SEXP n_samplesSEXP, SEXP n_batchesSEXP, SEXP computeCovarianceSEXP, SEXP cSEXP) {
+List ZigZagGaussian(const Eigen::MatrixXd V, const Eigen::VectorXd mu, const unsigned int n_steps, const Eigen::VectorXd x0, const unsigned int n_samples, const unsigned int n_batches, bool computeCovariance, const double c);
+RcppExport SEXP _RZigZag_ZigZagGaussian(SEXP VSEXP, SEXP muSEXP, SEXP n_stepsSEXP, SEXP x0SEXP, SEXP n_samplesSEXP, SEXP n_batchesSEXP, SEXP computeCovarianceSEXP, SEXP cSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Eigen::MatrixXd >::type V(VSEXP);
     Rcpp::traits::input_parameter< const Eigen::VectorXd >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< const unsigned int >::type n_epochs(n_epochsSEXP);
-    Rcpp::traits::input_parameter< const NumericVector >::type x0(x0SEXP);
+    Rcpp::traits::input_parameter< const unsigned int >::type n_steps(n_stepsSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type x0(x0SEXP);
     Rcpp::traits::input_parameter< const unsigned int >::type n_samples(n_samplesSEXP);
     Rcpp::traits::input_parameter< const unsigned int >::type n_batches(n_batchesSEXP);
     Rcpp::traits::input_parameter< bool >::type computeCovariance(computeCovarianceSEXP);
     Rcpp::traits::input_parameter< const double >::type c(cSEXP);
-    rcpp_result_gen = Rcpp::wrap(ZigZagGaussian(V, mu, n_epochs, x0, n_samples, n_batches, computeCovariance, c));
+    rcpp_result_gen = Rcpp::wrap(ZigZagGaussian(V, mu, n_steps, x0, n_samples, n_batches, computeCovariance, c));
+    return rcpp_result_gen;
+END_RCPP
+}
+// BPSGaussian
+List BPSGaussian(const Eigen::MatrixXd V, const Eigen::VectorXd mu, const unsigned int n_steps, const Eigen::VectorXd x0, const double refresh_rate, const bool unit_velocity, const unsigned int n_samples, const unsigned int n_batches, bool computeCovariance, const double c);
+RcppExport SEXP _RZigZag_BPSGaussian(SEXP VSEXP, SEXP muSEXP, SEXP n_stepsSEXP, SEXP x0SEXP, SEXP refresh_rateSEXP, SEXP unit_velocitySEXP, SEXP n_samplesSEXP, SEXP n_batchesSEXP, SEXP computeCovarianceSEXP, SEXP cSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd >::type V(VSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< const unsigned int >::type n_steps(n_stepsSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type x0(x0SEXP);
+    Rcpp::traits::input_parameter< const double >::type refresh_rate(refresh_rateSEXP);
+    Rcpp::traits::input_parameter< const bool >::type unit_velocity(unit_velocitySEXP);
+    Rcpp::traits::input_parameter< const unsigned int >::type n_samples(n_samplesSEXP);
+    Rcpp::traits::input_parameter< const unsigned int >::type n_batches(n_batchesSEXP);
+    Rcpp::traits::input_parameter< bool >::type computeCovariance(computeCovarianceSEXP);
+    Rcpp::traits::input_parameter< const double >::type c(cSEXP);
+    rcpp_result_gen = Rcpp::wrap(BPSGaussian(V, mu, n_steps, x0, refresh_rate, unit_velocity, n_samples, n_batches, computeCovariance, c));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -48,6 +68,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_RZigZag_ZigZagLogistic", (DL_FUNC) &_RZigZag_ZigZagLogistic, 10},
     {"_RZigZag_ZigZagGaussian", (DL_FUNC) &_RZigZag_ZigZagGaussian, 8},
+    {"_RZigZag_BPSGaussian", (DL_FUNC) &_RZigZag_BPSGaussian, 10},
     {NULL, NULL, 0}
 };
 
