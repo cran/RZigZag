@@ -4,36 +4,38 @@
 \alias{ZigZagGaussian}
 \title{ZigZagGaussian}
 \usage{
-ZigZagGaussian(V, mu, n_steps, x0, n_samples = 0L, n_batches = 0L,
-  computeCovariance = FALSE, c = 1)
+ZigZagGaussian(V, mu, n_iterations, x0, finalTime = -1, n_samples = 0L,
+  n_batches = 0L, computeCovariance = FALSE)
 }
 \arguments{
 \item{V}{the inverse covariance matrix of the Gaussian target distribution}
 
 \item{mu}{mean of the Gaussian target distribution}
 
-\item{n_steps}{Number of algorithm iterations; will result in the equivalent amount of skeleton points in Gaussian case because no rejections are needed.}
+\item{n_iterations}{Number of algorithm iterations; will result in the equivalent amount of skeleton points in Gaussian case because no rejections are needed.}
 
 \item{x0}{starting point}
+
+\item{finalTime}{If provided and nonnegative, run the sampler until a trajectory of continuous time length finalTime is obtained (ignoring the value of \code{n_iterations})}
 
 \item{n_samples}{Number of discrete time samples to extract from the Zig-Zag skeleton.}
 
 \item{n_batches}{If non-zero, estimate effective sample size through the batch means method, with n_batches number of batches.}
 
 \item{computeCovariance}{Boolean indicating whether to estimate the covariance matrix.}
-
-\item{c}{optional argument, specifies which fraction of the data is used to determine a reference point for ZZ-CV. Values for c < 1 give a suboptimal reference point.}
 }
 \value{
 Returns a list with the following objects:
 
 \code{skeletonTimes}: Vector of switching times
 
-\code{skeletonPoints}: Matrix whose columns are locations of switches. The number of columns is identical to the length of \code{skeletonTimes}
+\code{skeletonPoints}: Matrix whose columns are locations of switches. The number of columns is identical to the length of \code{skeletonTimes}. Be aware that the skeleton points themselves are NOT samples from the target distribution.
+
+\code{skeletonDirections}: Matrix whose columns are directions just after switches. The number of columns is identical to the length of \code{skeletonTimes}.
 
 \code{samples}: If \code{n_samples > 0}, this is a matrix whose \code{n_samples} columns are samples along the Zig-Zag trajectory.
 
-\code{mode}: If \code{controlvariates = TRUE}, this is a vector containing the posterior mode obtained using Newton's method.
+\code{mode}: Not used for a Gaussian target.
 
 \code{batchMeans}: If \code{n_batches > 0}, this is a matrix whose \code{n_batches} columns are the batch means
 
@@ -47,7 +49,7 @@ Returns a list with the following objects:
 }
 \description{
 Applies the Zig-Zag Sampler to a Gaussian target distribution, as detailed in Bierkens, Fearnhead, Roberts, The Zig-Zag Process and Super-Efficient Sampling for Bayesian Analysis of Big Data, 2016.
-Assume potential of the form \code{Psi(x) = (x - mu)^T V (x - mu)/2}, i.e. a Gaussian with mean vector \code{mu} and covariance matrix \code{inv(V)}
+Assume potential of the form \deqn{U(x) = (x - mu)^T V (x - mu)/2,} i.e. a Gaussian with mean vector \code{mu} and covariance matrix \code{inv(V)}
 }
 \examples{
 V <- matrix(c(3,1,1,3),nrow=2)

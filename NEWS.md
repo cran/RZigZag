@@ -1,3 +1,7 @@
+# RZigZag 0.1.6
+* Allows for fixed time horizon (in additional to fixed number of iterations)
+* Preprocessing of input to logistic regression disabled. Adding intercept to design matrix and possible recentering is up to user.
+
 # RZigZag 0.1.5
 * Implements Bouncy Particle Sampler for Gaussian target
 * Allows to specify starting value for ZigZagGaussian
@@ -10,5 +14,4 @@
 * Corrected arXiv reference
 
 # RZigZag 0.1.1
-
 * This is the first version, which introduces the R functions `ZigZagLogistic` and `ZigZagGaussian`.

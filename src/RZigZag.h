@@ -24,34 +24,40 @@ using namespace Rcpp;
 
 // [[Rcpp::depends(RcppEigen)]]
 #include <RcppEigen.h>
-
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using Eigen::VectorXi;
-double getRandomTime(double a, double b, double u); // simulate T such that P(T>= t) = exp(-at-bt^2/2), using uniform random input u
 
-MatrixXd preprocessLogistic(const MatrixXd& dataX); // center data and add a row of ones
-MatrixXd domHessianLogistic(const MatrixXd& dataX); // compute dominating Hessian for logistic regression
-double derivativeLogistic(const MatrixXd& dataX, const VectorXi& dataY, const VectorXd& beta, unsigned int k); // k-th derivative of potential
-VectorXd logisticUpperbound(const MatrixXd& dataX);
-VectorXd cvBound(const MatrixXd& dataX);
+#define DEFAULTSIZE 1e4
+
+double getRandomTime(double a, double b, double u); // simulate T such that P(T>= t) = exp(-at-bt^2/2), using uniform random input u
 
 class Skeleton {
 public:
-  MatrixXd sample(const unsigned int n_samples);
-  List toR();
-  void LogisticBasicZZ(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta = VectorXd::Zero(0)); // logistic regression with zig zag
-  void LogisticUpperboundZZ(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta0 = VectorXd::Zero(0)); 
-  void LogisticSubsamplingZZ(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta = VectorXd::Zero(0));
-  void LogisticCVZZ(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_iter, VectorXd beta = VectorXd::Zero(0)); // control variates zigzag
-  void GaussianZZ(const MatrixXd& V, const VectorXd& mu, const unsigned int n_steps, const VectorXd& x0); // sample Gaussian with precision matrix V
-  void GaussianBPS(const MatrixXd& V, const VectorXd& mu, const unsigned int n_steps, const VectorXd& x0, const double refresh_rate, const bool unit_velocity = true); // sample Gaussian with precision matrix V
-  void computeBatchMeans(const unsigned int n_batches);
+  void LogisticBasicZZ(const MatrixXd& dataX, const VectorXi& dataY, const int n_iter, const double finalTime, const VectorXd& x0); // logistic regression with zig zag
+  void LogisticUpperboundZZ(const MatrixXd& dataX, const VectorXi& dataY, const int n_iter, const double finalTime, const VectorXd& x0); 
+  void LogisticSubsamplingZZ(const MatrixXd& dataX, const VectorXi& dataY, const int n_iter, const double finalTime, const VectorXd& x0);
+  void LogisticCVZZ(const MatrixXd& dataX, const VectorXi& dataY, const int n_iter, const double finalTime, const VectorXd& x0); // control variates zigzag
+  void GaussianZZ(const MatrixXd& V, const VectorXd& mu, const int n_iter, const double finalTime, const VectorXd& x0); // sample Gaussian with precision matrix V
+  void GaussianBPS(const MatrixXd& V, const VectorXd& mu, const int n_iter, const double finalTime, const VectorXd& x0, const double refresh_rate, const bool unit_velocity = true); // sample Gaussian with precision matrix V
+  void sample(const int n_samples);
+  void computeBatchMeans(const int n_batches);
   void computeCovariance();
+  List toR();
 
 private:
-  ArrayXd skeletonTimes;
-  MatrixXd skeletonPoints;
+  void Initialize(const int dim, int initialSize);
+  void Push(const double time, const VectorXd& point, const VectorXd& direction, const double finalTime = -1);
+  void ShrinkToCurrentSize(); // shrinks to actual size;
+  void Resize(const int factor = 2);
+
+  MatrixXd Points;
+  MatrixXd Directions;
+  VectorXd Times;
+  int capacity;
+  int currentSize;
+  int dimension;
+  
   MatrixXd samples;
   VectorXd mode;
   MatrixXd batchMeans;
@@ -60,19 +66,3 @@ private:
   VectorXd asVarEst;
   VectorXd ESS;
 };
-
-class LogisticData {
-public:
-  LogisticData(const MatrixXd* dataXptr, const VectorXi* dataYptr);
-  double potential(const VectorXd& beta) const;
-  VectorXd gradient(const VectorXd& beta) const;
-  MatrixXd hessian(const VectorXd& beta) const;
-private:
-  unsigned int dim, n_observations;
-  const MatrixXd* dataXptr;
-  const VectorXi* dataYptr;
-};
-
-double newtonLogistic(const LogisticData& data, VectorXd& beta, double precision, const unsigned int max_iter);
-
-MatrixXd LogisticMALA(const MatrixXd& dataX, const VectorXi& dataY, const unsigned int n_epochs, const VectorXd& beta0, const double stepsize);

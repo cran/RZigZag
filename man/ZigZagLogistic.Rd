@@ -4,22 +4,24 @@
 \alias{ZigZagLogistic}
 \title{ZigZagLogistic}
 \usage{
-ZigZagLogistic(dataX, dataY, n_iter, subsampling = TRUE,
-  controlvariates = TRUE, beta0 = numeric(0), n_samples = 0L,
+ZigZagLogistic(dataX, dataY, n_iterations, x0 = numeric(0), finalTime = -1,
+  subsampling = TRUE, controlvariates = TRUE, n_samples = 0L,
   n_batches = 0L, computeCovariance = FALSE, upperbound = FALSE)
 }
 \arguments{
-\item{dataX}{Matrix containing the independent variables x. The i-th column represents the i-th observation with components x_{1,i}, ..., x_{d-1,i}.}
+\item{dataX}{Matrix containing the independent variables x. The i-th column represents the i-th observation with components x_{1,i}, ..., x_{d,i}.}
 
 \item{dataY}{Vector of length n containing {0, 1}-valued observations of the dependent variable y.}
 
-\item{n_iter}{Integer indicating the number of iterations, i.e. the number of proposed switches.}
+\item{n_iterations}{Integer indicating the number of iterations, i.e. the number of proposed switches.}
+
+\item{x0}{Optional argument indicating the starting point for the Zig-Zag sampler}
+
+\item{finalTime}{If provided and nonnegative, run the sampler until a trajectory of continuous time length finalTime is obtained (ignoring the value of \code{n_iterations})}
 
 \item{subsampling}{Boolean. Use Zig-Zag with subsampling if TRUE.}
 
-\item{controlvariates}{Boolean. Use Zig-Zag with control variates if TRUE (overriding any value of \code{subsampling}).}
-
-\item{beta0}{Optional argument indicating the starting point for the Zig-Zag sampler}
+\item{controlvariates}{Boolean. Use Zig-Zag with subsampling combined with control variates if TRUE (overriding any value of \code{subsampling}).}
 
 \item{n_samples}{Number of discrete time samples to extract from the Zig-Zag skeleton.}
 
@@ -32,33 +34,35 @@ ZigZagLogistic(dataX, dataY, n_iter, subsampling = TRUE,
 \value{
 Returns a list with the following objects:
 
-\code{skeletonTimes} Vector of switching times
+\code{skeletonTimes}: Vector of switching times
 
-\code{skeletonPoints} Matrix whose columns are locations of switches. The number of columns is identical to the length of \code{skeletonTimes}. Be aware that the skeleton points themselves are NOT samples from the target distribution.
+\code{skeletonPoints}: Matrix whose columns are locations of switches. The number of columns is identical to the length of \code{skeletonTimes}. Be aware that the skeleton points themselves are NOT samples from the target distribution.
 
-\code{samples} If \code{n_samples > 0}, this is a matrix whose \code{n_samples} columns are samples at fixed intervals along the Zig-Zag trajectory.
+\code{skeletonDirections}: Matrix whose columns are directions just after switches. The number of columns is identical to the length of \code{skeletonTimes}.
 
-\code{mode} If \code{controlvariates = TRUE}, this is a vector containing the posterior mode obtained using Newton's method.
+\code{samples}: If \code{n_samples > 0}, this is a matrix whose \code{n_samples} columns are samples at fixed intervals along the Zig-Zag trajectory.
 
-\code{batchMeans} If \code{n_batches > 0}, this is a matrix whose \code{n_batches} columns are the batch means
+\code{mode}: If \code{controlvariates = TRUE}, this is a vector containing the posterior mode obtained using Newton's method.
 
-\code{means} If \code{n_batches > 0}, this is a vector containing the means of each coordinate along the Zig-Zag trajectory
+\code{batchMeans}: If \code{n_batches > 0}, this is a matrix whose \code{n_batches} columns are the batch means
 
-\code{covariance} If \code{n_batches > 0} or \code{computeCovariance = TRUE}, this is a matrix containing the sample covariance matrix along the trajectory
+\code{means}: If \code{n_batches > 0}, this is a vector containing the means of each coordinate along the Zig-Zag trajectory
 
-\code{asVarEst} If \code{n_batches > 0} this is an estimate of the asymptotic variance along each component
+\code{covariance}: If \code{n_batches > 0} or \code{computeCovariance = TRUE}, this is a matrix containing the sample covariance matrix along the trajectory
 
-\code{ESS} If \code{n_batches > 0} this is an estimate of the effective sample size along each component
+\code{asVarEst}: If \code{n_batches > 0} this is an estimate of the asymptotic variance along each component
+
+\code{ESS}: If \code{n_batches > 0} this is an estimate of the effective sample size along each component
 }
 \description{
 Applies the Zig-Zag Sampler to logistic regression, as detailed in Bierkens, Fearnhead, Roberts, The Zig-Zag Process and Super-Efficient Sampling for Bayesian Analysis of Big Data, 2016.
 }
 \examples{
 require("RZigZag")
-generate.logistic.data <- function(beta, nobs) {
-  ncomp <- length(beta)
-  dataX <- matrix(rnorm((ncomp -1) * nobs), nrow = ncomp -1);
-  vals <- beta[1] + colSums(dataX * as.vector(beta[2:ncomp]))
+generate.logistic.data <- function(beta, n.obs) {
+  dim <- length(beta)
+  dataX <- rbind(rep(1, n.obs), matrix(rnorm((dim -1) * n.obs), nrow = dim -1));
+  vals <- colSums(dataX * as.vector(beta))
   generateY <- function(p) { rbinom(1, 1, p)}
   dataY <- sapply(1/(1 + exp(-vals)), generateY)
   return(list(dataX, dataY))
