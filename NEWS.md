@@ -1,3 +1,11 @@
+
+# RZigZag 0.2.0
+* general refactoring which is unfortunately not downwards compatible
+* R helper functions to obtain ESS and samples from skeleton
+* transposed dataX matrix in logistic regression: now the different rows of dataX represent different observations 
+* allow user to provide starting direction and custom reference points for control variates (ZigZagLogistic)
+* BPS and Zig-Zag routinesStudent distributions
+
 # RZigZag 0.1.6
 * Allows for fixed time horizon (in additional to fixed number of iterations)
 * Preprocessing of input to logistic regression disabled. Adding intercept to design matrix and possible recentering is up to user.

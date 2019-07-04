@@ -1,17 +1,17 @@
 Package: RZigZag
 Type: Package
 Title: Zig-Zag Sampler
-Version: 0.1.6
-Date: 2018-04-30
+Version: 0.2.0
+Date: 2019-07-03
 Author: Joris Bierkens
-Maintainer: Joris Bierkens <joris.bierkens@tudelft.nl>
-Description: Implements the Zig-Zag algorithm with subsampling and control variates (ZZ-CV) of (Bierkens, Fearnhead, Roberts, 2016) <arXiv:1607.03188> as applied to Bayesian logistic regression, as well as basic Zig-Zag for a Gaussian target distribution, and Bouncy Particle Sampler for a Gaussian target.
+Maintainer: Joris Bierkens <j.bierkens@vu.nl>
+Description: Implements the Zig-Zag algorithm (Bierkens, Fearnhead, Roberts, 2016) <arXiv:1607.03188> applied and Bouncy Particle Sampler <arXiv:1510.02451> for a Gaussian target and Student distribution.
 License: GPL (>= 2)
 Imports: Rcpp (>= 0.12.3)
 LinkingTo: Rcpp, RcppEigen
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
 Encoding: UTF-8
 NeedsCompilation: yes
-Packaged: 2018-04-30 10:55:59 UTC; joris
+Packaged: 2019-07-04 13:16:45 UTC; joris
 Repository: CRAN
-Date/Publication: 2018-04-30 11:05:01 UTC
+Date/Publication: 2019-07-04 14:10:03 UTC
