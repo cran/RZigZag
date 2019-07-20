@@ -1,4 +1,4 @@
-0a561e4d6abd809df3eb1c78af2c7807 *DESCRIPTION
+0113e42701c3aa964474c380bca11c3f *DESCRIPTION
 9f19575cc27101124bd2fa1babd6d31a *NAMESPACE
 a710dee6fb58e038ac9d6e39910c1502 *NEWS.md
 9f85f3a328a7995496765066a76d09a4 *R/RZigZag.R
@@ -17,7 +17,7 @@ d902e38141fefa489ce4c5da4808baf0 *man/ZigZagLogistic.Rd
 b1d3008e55a1d8bf69b9bd1c984318a7 *man/ZigZagStudentT.Rd
 f59a503b5a890afb339d336e5dc64e05 *src/GaussianSampler.cpp
 78ebd0c93e9937dc7180a108d01243fe *src/GaussianSampler.h
-452811925167f4fcb2449ad681db83e0 *src/LogisticSampler.cpp
+59c4d28fd2aa55bf89599969df45dcdc *src/LogisticSampler.cpp
 6d15ba6e8dbdcbcc1dd8d4d15fcae901 *src/LogisticSampler.h
 ce2036ded9a402c84050ac577718d069 *src/PostProcess.cpp
 cca4de13e1983e30166efba294818a35 *src/PostProcess.h

@@ -90,7 +90,7 @@ VectorXd LogisticData::getUniformBound() const {
 
 void LogisticZZ::Initialize() {
   a = state.v.array() * data.gradient(state.x).array();
-  b = sqrt(dim) * data.dominatingHessian().rowwise().norm();
+  b = (long double) sqrt((long double) dim) * data.dominatingHessian().rowwise().norm();
 }
   
 double LogisticZZ::getTrueIntensity() {
@@ -113,7 +113,7 @@ void LogisticCVZZ::Initialize() {
     grad_ref = data.gradient(x_ref);
   }
   C = data.getUniformBound();
-  b = sqrt(dim) * C;
+  b = (long double)sqrt((long double)dim) * C;
   updateBound();
 }
 
